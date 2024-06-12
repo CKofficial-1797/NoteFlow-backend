@@ -2,7 +2,7 @@ const Notes = require("../models/NotesModel");
 const { google } = require('googleapis')
 const path = require('path')
 const stream = require('stream');
-const { fileUplodeSchema, fileUplodeSchemaFunction } = require("../backendValidation/Schema"); 
+const { fileUplodeSchemaFunction } = require("../backendValidation/Schema");
 
 //create the post
 const KEYFILEPATH = path.join(__dirname, "cred.json");
@@ -22,14 +22,17 @@ const uploadNotes = async (req, res) => {
 
         const { postedBy, branch, semester, subject } = req.body;
         const file = req.file;
-
-
         //    Check file size
-           const MAX_SIZE = 40 * 1024 * 1024; // 40MB
-           if (file.size > MAX_SIZE) {
-               return res.status(400).json({ message: "File size exceeds 40MB limit" });
-           }
-
+        const MAX_SIZE = 40 * 1024 * 1024; // 40MB
+        if (file.size > MAX_SIZE) {
+            return res.status(400).json({ message: "File size exceeds 40MB limit" });
+        }
+        if (!postedBy) {
+            return res.status(400).json({ message: 'PostedBy and fies upload fields are required' })
+        }
+        if (!branch || !semester || !subject || !file) {
+            return res.status(400).json({ message: 'All fields are required' })
+        }
         // const user = await User.findById(postedBy);
         // if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -39,7 +42,7 @@ const uploadNotes = async (req, res) => {
 
         const bufferStream = new stream.PassThrough();
         bufferStream.end(file.buffer);
-        const  { data } = await google.drive({ version: "v3", auth }).files.create({
+        const { data } = await google.drive({ version: "v3", auth }).files.create({
             media: {
                 mimeType: file.mimeType,
                 body: bufferStream,
@@ -62,8 +65,8 @@ const uploadNotes = async (req, res) => {
         });
         await newNotes.save();
 
-        res.status(200).json( newNotes )
-      
+        res.status(200).json(newNotes)
+
       
     }
     catch (error) {
@@ -175,7 +178,7 @@ const getNotesSemSub = async (req, res) => {
 //     }
 // }
 
-module.exports = { uploadNotes,getAllNotes, getNotes, getNotesSem, getNotesSemSub };
+module.exports = { uploadNotes, getAllNotes, getNotes, getNotesSem, getNotesSemSub };
 
 
 
