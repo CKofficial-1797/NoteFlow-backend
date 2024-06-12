@@ -20,6 +20,9 @@ const uploadNotes = async (req, res) => {
         if (!postedBy) {
             return res.status(400).json({ message: 'PostedBy and fies upload fields are required' })
         }
+        if(!branch || !semester || !subject || !file){
+            return res.status(400).json({ message: 'All fields are required' })
+        }
 
         // const user = await User.findById(postedBy);
         // if (!user) return res.status(404).json({ message: 'User not found' });
