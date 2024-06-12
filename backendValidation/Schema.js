@@ -43,6 +43,20 @@ const fileUplodeSchemaFunction = (body)=>{
 }
 
 
-module.exports = {fileUplodeSchema , fileUplodeSchemaFunction}
+const fileTypeCheckingFunction = (file )=>{
+    const fileName = file.originalname
+    const fileExtension = fileName.split('.').pop().toLowerCase()
+    const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+    if (!allowedExtensions.includes(fileExtension)) {
+        throw new FileHandleError("file must be .pdf, .jpg, .jpeg, or .png" ,400 , "zodError" )
+    
+    }
+
+    return
+  
+}
+
+
+module.exports = {fileUplodeSchema , fileUplodeSchemaFunction , fileTypeCheckingFunction}
 
 
