@@ -21,14 +21,17 @@ const uploadNotes = async (req, res) => {
 
         const { postedBy, branch, semester, subject } = req.body;
         const file = req.file;
-
-
-        //    Check file size
+       //    Check file size
            const MAX_SIZE = 40 * 1024 * 1024; // 40MB
            if (file.size > MAX_SIZE) {
                return res.status(400).json({ message: "File size exceeds 40MB limit" });
            }
-
+        if (!postedBy) {
+            return res.status(400).json({ message: 'PostedBy and fies upload fields are required' })
+        }
+        if(!branch || !semester || !subject || !file){
+            return res.status(400).json({ message: 'All fields are required' })
+        }
         // const user = await User.findById(postedBy);
         // if (!user) return res.status(404).json({ message: 'User not found' });
 
