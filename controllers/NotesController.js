@@ -2,7 +2,7 @@ const Notes = require("../models/NotesModel");
 const { google } = require('googleapis')
 const path = require('path')
 const stream = require('stream');
-const { fileUplodeSchemaFunction } = require("../backendValidation/Schema");
+const { fileUplodeSchemaFunction, fileTypeCheckingFunction } = require("../backendValidation/Schema");
 
 //create the post
 const KEYFILEPATH = path.join(__dirname, "cred.json");
@@ -22,6 +22,11 @@ const uploadNotes = async (req, res) => {
 
         const { postedBy, branch, semester, subject } = req.body;
         const file = req.file;
+
+        //checks for uplode file type
+
+        fileTypeCheckingFunction(file)
+     
         //    Check file size
         const MAX_SIZE = 40 * 1024 * 1024; // 40MB
         if (file.size > MAX_SIZE) {
