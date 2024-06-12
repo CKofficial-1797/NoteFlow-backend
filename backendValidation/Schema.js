@@ -10,7 +10,7 @@ const { BranchEnum } = require('./branchEnum');
     branch : BranchEnum,
     subject : SubjectsEnum,
     semester : z.string().min(1 , {
-        message : "Please Enter Semister"
+        message : "Please Enter Semester"
     })
 
 
