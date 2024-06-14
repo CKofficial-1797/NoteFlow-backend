@@ -101,22 +101,6 @@ const getAllNotes = async (req, res) => {
     }
 }
 
-// //get the specific post by id
-const getNotes = async (req, res) => {
-    const { branch } = req.params
-    try {
-        const notes = await Notes.find({ branch })
-        if (!notes) return res.status(400).json({ error: "Notes not found" });
-
-        res.status(200).json(notes);
-    }
-
-    catch (error) {
-        res.status(500).json({ message: error.message });
-        console.log('Error in getNotes', error.message)
-    }
-}
-
 
 const getNotesSem = async (req, res) => {
     const { branch, semester } = req.params;
@@ -136,6 +120,36 @@ const getNotesSem = async (req, res) => {
     catch (error) {
         res.status(500).json({ message: error.message });
         console.log('Error in getNotes', error.message)
+    }
+}
+
+// //get the specific post by id
+const getNotes = async (req, res) => {
+    const { branch } = req.params;
+    try {
+        const notes = await Notes.find({ branch })
+        if (!notes) return res.status(400).json({ error: "Notes not found" });
+
+        res.status(200).json(notes);
+    }
+
+    catch (error) {
+        res.status(500).json({ message: error.message });
+        console.log('Error in getNotes', error.message)
+    }
+}
+
+const getNotesPostedBy = async (req, res) => {
+    const { postedBy } = req.params;
+    try {
+        const notes = await Notes.find({ postedBy });
+        if (!notes) return res.status(400).json({ error: "Notes not found" });
+        res.status(200).json(notes);
+    }
+
+    catch (error) {
+        res.status(500).json({ message: error.message });
+        console.log('Error in getNotesPostedBy', error.message)
     }
 }
 
@@ -160,30 +174,32 @@ const getNotesSemSub = async (req, res) => {
     }
 }
 
-// //delete the specific post by id 
-// const deletePost = async (req, res) => {
-//     try {
-//         const post = await Post.findById(req.params.id);
+const deletePost = async (req, res) => {
+    try {
+        const notes = await Notes.findById(req.params.id);
 
-//         if (!post) {
-//             return res.status(404).json({ message: 'Post not Found' });
-//         }
+        if (!notes) {
+            return res.status(404).json({ message: 'notes not Found' });
+        }
+        const filedelete = notes.file;
+        const filesplit = filedelete.split('/').pop();
 
-//         if (post.postedBy.toString() !== req.user._id.toString()) {
-//             return res.status(400).json({ message: 'Unauthorized to delete post' });
-//         }
+        const { data } = await google.drive({ version: "v3", auth }).files.delete({
+            fileId: filesplit,
+        })
 
-//         await Post.findByIdAndDelete(req.params.id);
+        // console.log(data);
+        await Notes.findByIdAndDelete(req.params.id);
 
-//         res.status(200).json({ message: 'Post Deleted successfull' })
-//     }
-//     catch (error) {
-//         res.status(500).json({ message: error.message });
-//         console.log('Error in deletePost', error.message)
-//     }
-// }
+        res.status(200).json({ message: 'Post Deleted successfull' })
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+        console.log('Error in deletePost', error.message)
+    }
+}
 
-module.exports = { uploadNotes, getAllNotes, getNotes, getNotesSem, getNotesSemSub };
+module.exports = { uploadNotes, getAllNotes, getNotesPostedBy, getNotes, getNotesSem, getNotesSemSub,deletePost };
 
 
 
