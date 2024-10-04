@@ -1,6 +1,7 @@
 const { z } = require('zod');
 
  const SubjectsEnum = z.enum([
+    "PYQ",
     "Enginnering Chemestry",
     "Introduction to Computer Programming and Data Structure",
     "Enginnering Mathamtics - I",
