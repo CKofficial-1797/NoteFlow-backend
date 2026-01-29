@@ -3,6 +3,8 @@ const { google } = require('googleapis')
 const path = require('path')
 const stream = require('stream');
 const { fileUplodeSchemaFunction, fileTypeCheckingFunction } = require("../backendValidation/Schema");
+const logger = require("../utils/logger");
+const CONSTANTS = require("../config/constants");
 
 //create the post
 const KEYFILEPATH = path.join(__dirname, "cred.json");
@@ -16,34 +18,31 @@ const auth = new google.auth.GoogleAuth({
 const uploadNotes = async (req, res) => {
     try {
          //uplode body validation
-
          fileUplodeSchemaFunction(req.body)
        
-
         const { postedBy, branch, semester, subject } = req.body;
         const file = req.file;
 
-        //checks for uplode file type
+        // Validate file exists
+        if (!file) {
+            return res.status(400).json({ 
+                message: CONSTANTS.ERRORS.MISSING_FIELDS,
+                code: 'NO_FILE'
+            });
+        }
 
+        //checks for uplode file type
         fileTypeCheckingFunction(file)
      
         //    Check file size
-        const MAX_SIZE = 40 * 1024 * 1024; // 40MB
-        if (file.size > MAX_SIZE) {
-            return res.status(400).json({ message: "File size exceeds 40MB limit" });
+        if (file.size > CONSTANTS.MAX_FILE_SIZE) {
+            return res.status(400).json({ 
+                message: CONSTANTS.ERRORS.FILE_SIZE_EXCEEDED,
+                code: 'FILE_TOO_LARGE'
+            });
         }
-        if (!postedBy) {
-            return res.status(400).json({ message: 'PostedBy and fies upload fields are required' })
-        }
-        if (!branch || !semester || !subject || !file) {
-            return res.status(400).json({ message: 'All fields are required' })
-        }
-        // const user = await User.findById(postedBy);
-        // if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // if (user._id.toString() !== req.user._id.toString()) {
-        //     return res.status(401).json({ message: 'Unauthorized to create post' })
-        // }
+        logger.info('Uploading note', { postedBy, branch, semester, subject, fileName: file.originalname });
 
         const bufferStream = new stream.PassThrough();
         bufferStream.end(file.buffer);
@@ -59,7 +58,6 @@ const uploadNotes = async (req, res) => {
             fields: "id,name"
         });
  
-
         const newNotes = new Notes({
             postedBy,
             branch,
@@ -70,19 +68,17 @@ const uploadNotes = async (req, res) => {
         });
         await newNotes.save();
 
-        res.status(200).json(newNotes)
-
-      
+        logger.info('Note uploaded successfully', { noteId: newNotes._id });
+        res.status(201).json(newNotes)
     }
     catch (error) {
-      
         if(error.type === "zodError") {
-            res.status(400).json({ message: error.message });
+            logger.warn('Validation error in uploadNotes', { message: error.message });
+            res.status(400).json({ message: error.message, code: 'VALIDATION_ERROR' });
             return
-
         }
-          res.status(500).json({ message: error.message });
-        console.log('Error in uploadNotes', error.message)
+        logger.error('Error in uploadNotes', { message: error.message, stack: error.stack });
+        res.status(500).json({ message: CONSTANTS.ERRORS.SERVER_ERROR });
     }
 }
 
